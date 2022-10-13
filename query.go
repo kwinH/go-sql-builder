@@ -29,6 +29,7 @@ func (b *Builder) Select(args ...interface{}) *Builder {
 }
 
 func (b *Builder) Table(table interface{}) *Builder {
+	b.initialize()
 	b.tmpTableClosureCount, b.tmpTable, b.params["table"] = b.setTable(table)
 	return b
 }
