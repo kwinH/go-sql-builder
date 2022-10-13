@@ -1,10 +1,10 @@
-# 简介
+# 简介[![Go Reference](https://pkg.go.dev/badge/github.com/kwinH/go-sql-builder.svg)](https://pkg.go.dev/github.com/kwinH/go-sql-builder)
 
 **一款超好用Golang版SQL构造器，支持链式操作拼接SQL语句，单元测试覆盖率100%，详细用法请查看测试用例。**
 
 ## 使用
 ```bash
-go get -v github.com/kwinH/go-sql-builder@v1.0.0
+go get -v github.com/kwinH/go-sql-builder
 ```
 
 # SQL构造器
