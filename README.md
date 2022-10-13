@@ -28,7 +28,7 @@ user.Select("id", "name").ToSql()
 
 user.Select("id,name").ToSql()
 
-user.Select([]string{"id,name"}).ToSql()
+user.Select([]string{"id","name"}).ToSql()
 ```
 
 ## 原生表达式
