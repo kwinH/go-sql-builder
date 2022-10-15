@@ -116,7 +116,11 @@ func (b *Builder) strEscapeId(field string, comma string) string {
 		table = "`" + table + "`."
 	}
 
-	return fmt.Sprintf("%s%s`%s`%s", comma, table, field, alias)
+	if !strings.Contains(field, "(") || !strings.Contains(field, ")") {
+		field = fmt.Sprintf("`%s`", field)
+	}
+
+	return fmt.Sprintf("%s%s%s%s", comma, table, field, alias)
 }
 
 func (b *Builder) convertInterfaceSlice(arr interface{}) []interface{} {
