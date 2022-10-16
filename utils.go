@@ -116,7 +116,18 @@ func (b *Builder) strEscapeId(field string, comma string) string {
 		table = "`" + table + "`."
 	}
 
-	if !strings.Contains(field, "(") || !strings.Contains(field, ")") {
+	leftBracketIndex := strings.Index(field, "(")
+	rightBracketIndex := strings.Index(field, ")")
+
+	if leftBracketIndex >= 0 && rightBracketIndex >= 0 {
+		param := strings.Trim(field[leftBracketIndex+1:rightBracketIndex], " `")
+		field = field[:leftBracketIndex]
+
+		if param != "" && param != "*" {
+			param = fmt.Sprintf(`%s`, param)
+		}
+		field = fmt.Sprintf("%s( %s )", field, param)
+	} else {
 		field = fmt.Sprintf("`%s`", field)
 	}
 
@@ -164,32 +175,46 @@ func (b *Builder) conditions(mode string, boolean string, args ...interface{}) *
 			value = args[2]
 		}
 
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.Array:
-		case reflect.Slice:
-			vi := b.convertInterfaceSlice(value)
-			conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, b.placeholders(len(vi)))
-			b.params[mode] = append(b.params[mode], vi...)
-		case reflect.Func:
-			if query, ok := value.(func(*Builder)); ok {
-				bw := NewBuilder("")
-				query(bw)
-				bwSql, bwParams := bw.ToSql()
-				if field == "EXISTS" || field == "NOT EXISTS" {
-					operator = field
-					conditions = fmt.Sprintf(" %s %s (%s)", boolean, operator, bwSql)
-				} else {
-					conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, bwSql)
-				}
-
-				b.params[mode] = append(b.params[mode], bwParams...)
+		valueKind := reflect.TypeOf(value).Kind()
+		if operator == "BETWEEN" {
+			switch valueKind {
+			case reflect.Array:
+			case reflect.Slice:
+				args = b.convertInterfaceSlice(value)
+			default:
+				args = append(b.params[mode], args[2:4])
 			}
-		default:
-			if value == "NULL" || value == "NOT NULL" {
-				conditions = fmt.Sprintf(" %s `%s` IS %s", boolean, field, value)
-			} else {
-				conditions = fmt.Sprintf(" %s `%s` %s ?", boolean, field, operator)
-				b.params[mode] = append(b.params[mode], value)
+
+			b.params[mode] = append(b.params[mode], args[:2]...)
+			conditions = fmt.Sprintf(" %s `%s` BETWEEN ? AND ?", boolean, field)
+		} else {
+			switch valueKind {
+			case reflect.Array:
+			case reflect.Slice:
+				vi := b.convertInterfaceSlice(value)
+				conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, b.placeholders(len(vi)))
+				b.params[mode] = append(b.params[mode], vi...)
+			case reflect.Func:
+				if query, ok := value.(func(*Builder)); ok {
+					bw := NewBuilder("")
+					query(bw)
+					bwSql, bwParams := bw.ToSql()
+					if field == "EXISTS" || field == "NOT EXISTS" {
+						operator = field
+						conditions = fmt.Sprintf(" %s %s (%s)", boolean, operator, bwSql)
+					} else {
+						conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, bwSql)
+					}
+
+					b.params[mode] = append(b.params[mode], bwParams...)
+				}
+			default:
+				if value == "NULL" || value == "NOT NULL" {
+					conditions = fmt.Sprintf(" %s `%s` IS %s", boolean, field, value)
+				} else {
+					conditions = fmt.Sprintf(" %s `%s` %s ?", boolean, field, operator)
+					b.params[mode] = append(b.params[mode], value)
+				}
 			}
 		}
 	}

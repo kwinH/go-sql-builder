@@ -92,3 +92,11 @@ func (b *Builder) OrWhereNull(field string) *Builder {
 func (b *Builder) OrWhereNotNull(field string) *Builder {
 	return b.OrWhere(field, "NOT NULL")
 }
+
+func (b *Builder) WhereBetween(field string, condition interface{}) *Builder {
+	return b.Where(field, "BETWEEN", condition)
+}
+
+func (b *Builder) OrWhereBetween(field string, condition interface{}) *Builder {
+	return b.OrWhere(field, "BETWEEN", condition)
+}

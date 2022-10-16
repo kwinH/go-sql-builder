@@ -11,24 +11,47 @@ func TestBuilder_Select(t *testing.T) {
 		params []interface{}
 	)
 
-	sql, params = NewBuilder("user").Select("id", "name").ToSql()
-	if sql == "SELECT `id`,`name` FROM `user`" &&
+	sql, params = NewBuilder("user").Select("id", "name as n").ToSql()
+	if sql == "SELECT `id`,`name` as `n` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
 		t.Error(sql, params)
 	}
 
-	sql, params = NewBuilder("user").Select("id,name").ToSql()
-	if sql == "SELECT `id`,`name` FROM `user`" &&
+	sql, params = NewBuilder("user").Select("id,name n").ToSql()
+	if sql == "SELECT `id`,`name` as `n` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
 		t.Error(sql, params)
 	}
 
-	sql, params = NewBuilder("user").Select([]string{"id", "name"}).ToSql()
-	if sql == "SELECT `id`,`name` FROM `user`" &&
+	sql, params = NewBuilder("user").Select([]string{"id", "name n"}).ToSql()
+	if sql == "SELECT `id`,`name` as `n` FROM `user`" &&
+		reflect.DeepEqual(params, []interface{}{}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_Select_Aggregate(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Select("max(`id`) as id_max").ToSql()
+	if sql == "SELECT max( id ) as `id_max` FROM `user`" &&
+		reflect.DeepEqual(params, []interface{}{}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+
+	sql, params = NewBuilder("user").Select("count(*) as c").ToSql()
+	if sql == "SELECT count( * ) as `c` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -42,8 +65,8 @@ func TestBuilder_Raw(t *testing.T) {
 		params []interface{}
 	)
 
-	sql, params = NewBuilder("user").Select(Raw("count(*) as c")).ToSql()
-	if sql == "SELECT count(*) as c FROM `user`" &&
+	sql, params = NewBuilder("user").Select(Raw("DISTINCT mobile")).ToSql()
+	if sql == "SELECT DISTINCT mobile FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -89,10 +112,10 @@ func TestBuilder_Table_SubQuery(t *testing.T) {
 
 	sql, params = NewBuilder("user").Table(func(m *Builder) {
 		m.Table(func(m *Builder) {
-			m.Table("m_users").Select("sex", Raw("count(*) as c")).Group("sex")
+			m.Table("m_users").Select("sex", "count(*) as c").Group("sex")
 		})
 	}).ToSql()
-	if sql == "SELECT * FROM (SELECT * FROM (SELECT `sex`,count(*) as c FROM `m_users` GROUP BY `sex`) as `tmp2`) as `tmp1`" &&
+	if sql == "SELECT * FROM (SELECT * FROM (SELECT `sex`,count( * ) as `c` FROM `m_users` GROUP BY `sex`) as `tmp2`) as `tmp1`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -145,8 +168,8 @@ func TestBuilder_Group(t *testing.T) {
 		params []interface{}
 	)
 
-	sql, params = NewBuilder("user").Select("age", Raw("count(*) as c")).Group("age").ToSql()
-	if sql == "SELECT `age`,count(*) as c FROM `user` GROUP BY `age`" &&
+	sql, params = NewBuilder("user").Select("age", "count(*) as c").Group("age").ToSql()
+	if sql == "SELECT `age`,count( * ) as `c` FROM `user` GROUP BY `age`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -160,8 +183,8 @@ func TestBuilder_Having(t *testing.T) {
 		params []interface{}
 	)
 
-	sql, params = NewBuilder("user").Select("age", Raw("count(*) as c")).Group("age").Having("c", ">", 10).ToSql()
-	if sql == "SELECT `age`,count(*) as c FROM `user` GROUP BY `age` HAVING `c` > ?" &&
+	sql, params = NewBuilder("user").Select("age", "count(*) as c").Group("age").Having("c", ">", 10).ToSql()
+	if sql == "SELECT `age`,count( * ) as `c` FROM `user` GROUP BY `age` HAVING `c` > ?" &&
 		reflect.DeepEqual(params, []interface{}{10}) {
 		t.Log(sql, params)
 	} else {

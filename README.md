@@ -1,19 +1,14 @@
-# 简介[![Go Reference](https://pkg.go.dev/badge/github.com/kwinH/go-sql-builder.svg)](https://pkg.go.dev/github.com/kwinH/go-sql-builder)
+# 简介 [![Go Reference](https://pkg.go.dev/badge/github.com/kwinH/go-sql-builder.svg)](https://pkg.go.dev/github.com/kwinH/go-sql-builder)
 
 **一款超好用Golang版SQL构造器，支持链式操作拼接SQL语句，单元测试覆盖率100%，详细用法请查看测试用例。**
 
-## 使用
+# 获取包
 ```bash
 go get -v github.com/kwinH/go-sql-builder
 ```
 
 # SQL构造器
 
-```go
-user := Builder{
-TableName: "user",
-}
-```
 
 ## Select
 
@@ -23,23 +18,37 @@ TableName: "user",
 
 ```go
 
-// SELECT `id`,`name` FROM `user`
-user.Select("id", "name").ToSql()
+// SELECT `id`,`name` as `n` FROM `user` []
+sql, params = NewBuilder("user").Select("id", "name as n").ToSql()
 
-user.Select("id,name").ToSql()
+sql, params = NewBuilder("user").Select("id,name n").ToSql()
 
-user.Select([]string{"id","name"}).ToSql()
+sql, params = NewBuilder("user").Select([]string{"id", "name n"}).ToSql()
+```
+
+### 聚合查询
+```go
+// SELECT max( `id` ) as `id_max` FROM `user` []
+sql, params = NewBuilder("user").Select("max(`id`) as id_max").ToSql()
+
+// SELECT min( `id` ) as `id_min` FROM `user` []
+sql, params = NewBuilder("user").Select("min(`id`) as id_min").ToSql()
+
+// SELECT count( * ) as `c` FROM `user` []
+sql, params = NewBuilder("user").Select("count(*) as c").ToSql()
 ```
 
 ## 原生表达式
 
 > 有时候你可能需要在查询中使用原生表达式。你可以使用 `sqlBuilder.Raw` 创建一个原生表达式：
 
+### 原生字段
 ```go
-// SELECT count(*) as c FROM `user` []
-sql, params = user.Select(Raw("count(*) as c")).ToSql()
+// SELECT DISTINCT mobile FROM `user` []
+sql, params = user.Select(Raw("DISTINCT mobile")).ToSql()
 ```
 
+### 原生条件
 ```go 
 // SELECT * FROM `user` WHERE price > IF(state = 'TX', 200, 100) []
 sql, params = user.Where(Raw("price > IF(state = 'TX', 200, 100)")).ToSql()
@@ -57,10 +66,10 @@ user.Table("users").ToSql()
 ### 子查询
 
 ```go
-// SELECT * FROM (SELECT * FROM (SELECT `sex`,count(*) as c FROM m_users GROUP BY `sex`) as `tmp2`) as `tmp1` []
+// SELECT * FROM (SELECT * FROM (SELECT `sex`,count( * ) as `c` FROM m_users GROUP BY `sex`) as `tmp2`) as `tmp1` []
 sql, params = user.Table(func (m *Builder) {
 m.Table(func (m *Builder) {
-m.Table("m_users").Select("sex", Raw("count(*) as c")).Group("sex")
+m.Table("m_users").Select("sex", "count(*) as c").Group("sex")
 })
 ```
 
@@ -206,11 +215,11 @@ ToSql()
 > groupBy 和 having 方法用于将结果分组。 having 方法的使用与 where 方法十分相似：
 
 ```go
-// SELECT `age`,count(*) as c FROM `user` GROUP BY `age` HAVING  `c` > ? [10]
-sql, params = user.Select("age", Raw("count(*) as c")).Group("age").Having("c", ">", 10).ToSql()
+// SELECT `age`,count( * ) as `c` FROM `user` GROUP BY `age` HAVING  `c` > ? [10]
+sql, params = user.Select("age", "count(*) as c").Group("age").Having("c", ">", 10).ToSql()
 
-// SELECT `age`,`sex`,count(*) as c FROM `user` GROUP BY `age`,`sex` HAVING  `c` > ? [10]
-sql, params = user.Select("age", 'sex', Raw("count(*) as c")).Group("age", "sex").Having("c", ">", 10).ToSql()
+// SELECT `age`,`sex`,count( * ) as `c` FROM `user` GROUP BY `age`,`sex` HAVING  `c` > ? [10]
+sql, params = user.Select("age", 'sex', "count(*) as c").Group("age", "sex").Having("c", ">", 10).ToSql()
 ```
 
 ## Limit

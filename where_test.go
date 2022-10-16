@@ -361,3 +361,39 @@ func TestBuilder_OrWhereNotNull(t *testing.T) {
 		t.Error(sql, params)
 	}
 }
+
+func TestBuilder_WhereBetween(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Where("sex", 1).
+		WhereBetween("attribute", []int{2, 3}).
+		ToSql()
+
+	if sql == "SELECT * FROM `user` WHERE `sex` = ? AND `attribute` BETWEEN ? AND ?" &&
+		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_OrWhereBetween(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Where("sex", 1).
+		OrWhereBetween("attribute", []int{2, 3}).
+		ToSql()
+
+	if sql == "SELECT * FROM `user` WHERE `sex` = ? OR `attribute` BETWEEN ? AND ?" &&
+		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
