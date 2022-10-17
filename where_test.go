@@ -124,6 +124,9 @@ func TestBuilder_OrWhereIn(t *testing.T) {
 	)
 
 	sql, params = NewBuilder("user").Where("sex", 1).
+		OrWhereIn("id", 100, 200).ToSql()
+
+	sql, params = NewBuilder("user").Where("sex", 1).
 		OrWhereIn("id", []int{100, 200}).ToSql()
 
 	if sql == "SELECT * FROM `user` WHERE `sex` = ? OR `id` IN (?,?)" &&
@@ -372,6 +375,10 @@ func TestBuilder_WhereBetween(t *testing.T) {
 		WhereBetween("attribute", []int{2, 3}).
 		ToSql()
 
+	sql, params = NewBuilder("user").Where("sex", 1).
+		WhereBetween("attribute", 2, 3).
+		ToSql()
+
 	if sql == "SELECT * FROM `user` WHERE `sex` = ? AND `attribute` BETWEEN ? AND ?" &&
 		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
 		t.Log(sql, params)
@@ -391,6 +398,42 @@ func TestBuilder_OrWhereBetween(t *testing.T) {
 		ToSql()
 
 	if sql == "SELECT * FROM `user` WHERE `sex` = ? OR `attribute` BETWEEN ? AND ?" &&
+		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_WhereNotBetween(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Where("sex", 1).
+		WhereNotBetween("attribute", 2, 3).
+		ToSql()
+
+	if sql == "SELECT * FROM `user` WHERE `sex` = ? AND `attribute` NOT BETWEEN ? AND ?" &&
+		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_OrWhereNotBetween(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Where("sex", 1).
+		OrWhereNotBetween("attribute", []int{2, 3}).
+		ToSql()
+
+	if sql == "SELECT * FROM `user` WHERE `sex` = ? OR `attribute` NOT BETWEEN ? AND ?" &&
 		reflect.DeepEqual(params, []interface{}{1, 2, 3}) {
 		t.Log(sql, params)
 	} else {

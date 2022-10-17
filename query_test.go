@@ -50,7 +50,7 @@ func TestBuilder_Select_Aggregate(t *testing.T) {
 		t.Error(sql, params)
 	}
 
-	sql, params = NewBuilder("user").Select("count(*) as c").ToSql()
+	sql, params = NewBuilder("user").Select("count(*) c").ToSql()
 	if sql == "SELECT count( * ) as `c` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)

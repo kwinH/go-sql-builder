@@ -61,20 +61,45 @@ func (b *Builder) OrWhereNotExists(where func(*Builder)) *Builder {
 	return b.OrWhere("NOT EXISTS", where)
 }
 
-func (b *Builder) WhereIn(field string, condition interface{}) *Builder {
-	return b.Where(field, "IN", condition)
+func (b *Builder) WhereIn(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "IN"
+
+	args = append(args, value...)
+
+	return b.Where(args...)
 }
 
-func (b *Builder) WhereNotIn(field string, condition interface{}) *Builder {
-	return b.Where(field, "NOT IN", condition)
+func (b *Builder) WhereNotIn(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "NOT IN"
+
+	args = append(args, value...)
+
+	return b.Where(args...)
 }
 
-func (b *Builder) OrWhereIn(field string, condition interface{}) *Builder {
-	return b.OrWhere(field, "IN", condition)
+func (b *Builder) OrWhereIn(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "IN"
+
+	args = append(args, value...)
+
+	return b.OrWhere(args...)
 }
 
-func (b *Builder) OrWhereNotIn(field string, condition interface{}) *Builder {
-	return b.OrWhere(field, "NOT IN", condition)
+func (b *Builder) OrWhereNotIn(field string, value ...interface{}) *Builder {
+
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "NOT IN"
+
+	args = append(args, value...)
+
+	return b.OrWhere(args...)
 }
 
 func (b *Builder) WhereNull(field string) *Builder {
@@ -93,10 +118,42 @@ func (b *Builder) OrWhereNotNull(field string) *Builder {
 	return b.OrWhere(field, "NOT NULL")
 }
 
-func (b *Builder) WhereBetween(field string, condition interface{}) *Builder {
-	return b.Where(field, "BETWEEN", condition)
+func (b *Builder) WhereBetween(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "BETWEEN"
+
+	args = append(args, value...)
+
+	return b.Where(args...)
 }
 
-func (b *Builder) OrWhereBetween(field string, condition interface{}) *Builder {
-	return b.OrWhere(field, "BETWEEN", condition)
+func (b *Builder) OrWhereBetween(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "BETWEEN"
+
+	args = append(args, value...)
+
+	return b.OrWhere(args...)
+}
+
+func (b *Builder) WhereNotBetween(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "NOT BETWEEN"
+
+	args = append(args, value...)
+
+	return b.Where(args...)
+}
+
+func (b *Builder) OrWhereNotBetween(field string, value ...interface{}) *Builder {
+	args := make([]interface{}, 2)
+	args[0] = field
+	args[1] = "NOT BETWEEN"
+
+	args = append(args, value...)
+
+	return b.OrWhere(args...)
 }

@@ -3,12 +3,12 @@
 **一款超好用Golang版SQL构造器，支持链式操作拼接SQL语句，单元测试覆盖率100%，详细用法请查看测试用例。**
 
 # 获取包
+
 ```bash
 go get -v github.com/kwinH/go-sql-builder
 ```
 
 # SQL构造器
-
 
 ## Select
 
@@ -27,6 +27,7 @@ sql, params = NewBuilder("user").Select([]string{"id", "name n"}).ToSql()
 ```
 
 ### 聚合查询
+
 ```go
 // SELECT max( `id` ) as `id_max` FROM `user` []
 sql, params = NewBuilder("user").Select("max(`id`) as id_max").ToSql()
@@ -35,7 +36,7 @@ sql, params = NewBuilder("user").Select("max(`id`) as id_max").ToSql()
 sql, params = NewBuilder("user").Select("min(`id`) as id_min").ToSql()
 
 // SELECT count( * ) as `c` FROM `user` []
-sql, params = NewBuilder("user").Select("count(*) as c").ToSql()
+sql, params = NewBuilder("user").Select("count(*) c").ToSql()
 ```
 
 ## 原生表达式
@@ -43,12 +44,14 @@ sql, params = NewBuilder("user").Select("count(*) as c").ToSql()
 > 有时候你可能需要在查询中使用原生表达式。你可以使用 `sqlBuilder.Raw` 创建一个原生表达式：
 
 ### 原生字段
+
 ```go
 // SELECT DISTINCT mobile FROM `user` []
 sql, params = user.Select(Raw("DISTINCT mobile")).ToSql()
 ```
 
 ### 原生条件
+
 ```go 
 // SELECT * FROM `user` WHERE price > IF(state = 'TX', 200, 100) []
 sql, params = user.Where(Raw("price > IF(state = 'TX', 200, 100)")).ToSql()
@@ -107,40 +110,50 @@ OrWhere("name", "like", "%q%").
 ToSql()
 ```
 
-### 参数分组
+### WhereBetween / WhereNotIn / WhereNotBetween / OrWhereNotBetween
 
-> 如果需要在括号内对 or 条件进行分组，将闭包作为 orWhere 方法的第一个参数也是可以的：
+> `WhereBetween` 方法验证字段值是否在给定的两个值之间：
 
-```go
-// SELECT `id` FROM `user` WHERE  `id` <> ? OR  ( `age` > ? AND  `name` like ?) [1 18 %q%]
-sql, params := user.Where("id", "<>", 1).
-OrWhere(func (m *Builder) {
-m.Where("age", ">", 18).
-Where("name", "like", "%q%")
-}).ToSql()
-```
-
-### 子查询 Where 语句
+> 可以传一个数组，也可以传2个值
 
 ```go
-// SELECT * FROM `user` WHERE  `id` <> ? AND  `id` in (SELECT `id` FROM `user_old` WHERE  `age` > ? AND  `name` like ?) [1 18 %q%]
-sql, params = user.Where("id", "<>", 1).
-WhereIn("id", func (m *Builder) {
-m.Select("id").
-Table("user_old").
-Where("age", ">", 18).
-Where("name", "like", "%q%")
-}).ToSql()
+// SELECT * FROM `user` WHERE `sex` = ? AND `attribute` BETWEEN ? AND ? [1 2 3]
+sql, params = NewBuilder("user").Where("sex", 1).
+WhereBetween("attribute", 2, 3).
+ToSql()
+
+// SELECT * FROM `user` WHERE `sex` = ? OR `attribute` BETWEEN ? AND ? [1 2 3]
+sql, params = NewBuilder("user").Where("sex", 1).
+OrWhereBetween("attribute", []int{2, 3}).
+ToSql()
 ```
 
-### whereIn / whereNotIn / orWhereIn / orWhereNotIn
+> `WhereNotBetween` 方法用于验证字段值是否在给定的两个值之外：
+
+> 可以传一个数组，也可以传2个值
+
+```go
+// SELECT * FROM `user` WHERE `sex` = ? AND `attribute` NOT BETWEEN ? AND ? [1 2 3]
+sql, params = NewBuilder("user").Where("sex", 1).
+WhereNotBetween("attribute", 2, 3).
+ToSql()
+
+// SELECT * FROM `user` WHERE `sex` = ? OR `attribute` NOT BETWEEN ? AND ? [1 2 3]
+sql, params = NewBuilder("user").Where("sex", 1).
+OrWhereNotBetween("attribute", []int{2, 3}).
+ToSql()
+```
+
+### WhereIn / WhereNotIn / OrWhereIn / OrWhereNotIn
 
 > `WhereIn` 方法验证给定列的值是否包含在给定数组中：
+
+> 可以传一个数组，也可以传多个值
 
 ```go
 // SELECT * FROM `user` WHERE `sex` = ? AND `id` IN (?,?) [1 100 200]
 sql, params = user.Where("sex", 1).
-WhereIn("id", []int{100, 200}).ToSql()
+WhereIn("id", 100, 200).ToSql()
 
 // SELECT * FROM `user` WHERE `sex` = ? OR `id` IN (?,?) [1 100 200]
 sql, params = user.Where("sex", 1).
@@ -185,6 +198,32 @@ WhereNotNull("deleted_at").ToSql()
 sql, params = user.Where("sex", 1).
 OrWhereNotNull("deleted_at").ToSql()
 
+```
+
+### 分组查询
+
+> 如果需要在括号内对 or 条件进行分组，将闭包作为 orWhere 方法的第一个参数也是可以的：
+
+```go
+// SELECT `id` FROM `user` WHERE  `id` <> ? OR  ( `age` > ? AND  `name` like ?) [1 18 %q%]
+sql, params := user.Where("id", "<>", 1).
+OrWhere(func (m *Builder) {
+m.Where("age", ">", 18).
+Where("name", "like", "%q%")
+}).ToSql()
+```
+
+### 子查询 Where 语句
+
+```go
+// SELECT * FROM `user` WHERE  `id` <> ? AND  `id` in (SELECT `id` FROM `user_old` WHERE  `age` > ? AND  `name` like ?) [1 18 %q%]
+sql, params = user.Where("id", "<>", 1).
+WhereIn("id", func (m *Builder) {
+m.Select("id").
+Table("user_old").
+Where("age", ">", 18).
+Where("name", "like", "%q%")
+}).ToSql()
 ```
 
 ## Order

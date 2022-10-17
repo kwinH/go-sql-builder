@@ -104,7 +104,15 @@ func (b *Builder) strEscapeId(field string, comma string) string {
 		}
 
 		field = strings.Trim(fieldArr[0], " ")
-		alias = " as `" + strings.Trim(fieldArr[1], " ") + "`"
+
+		for i := 1; i < len(fieldArr); i++ {
+			if fieldArr[i] == "" {
+				continue
+			}
+			alias = " as `" + strings.Trim(fieldArr[i], " ") + "`"
+			break
+		}
+
 	}
 
 	if strings.Contains(field, ".") {
@@ -174,20 +182,19 @@ func (b *Builder) conditions(mode string, boolean string, args ...interface{}) *
 			field = args[0].(string)
 			operator = args[1].(string)
 			value = args[2]
+		default:
+			field = args[0].(string)
+			operator = args[1].(string)
+			value = args[2:]
 		}
 
 		valueKind := reflect.TypeOf(value).Kind()
-		if operator == "BETWEEN" {
-			switch valueKind {
-			case reflect.Array:
-			case reflect.Slice:
-				args = b.convertInterfaceSlice(value)
-			default:
-				args = append(b.params[mode], args[2:4])
-			}
+
+		if strings.Contains(operator, "BETWEEN") {
+			args = b.convertInterfaceSlice(value)
 
 			b.params[mode] = append(b.params[mode], args[:2]...)
-			conditions = fmt.Sprintf(" %s `%s` BETWEEN ? AND ?", boolean, field)
+			conditions = fmt.Sprintf(" %s `%s` %s ? AND ?", boolean, field, operator)
 		} else {
 			switch valueKind {
 			case reflect.Array:
