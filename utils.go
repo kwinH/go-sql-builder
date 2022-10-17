@@ -93,11 +93,12 @@ func (b *Builder) escapeId(field interface{}) (fieldStr string) {
 func (b *Builder) strEscapeId(field string, comma string) string {
 	var alias, table string
 
-	containsAs := strings.Contains(field, "as")
+	containsAs := strings.Contains(field, " as ")
+
 	if containsAs || strings.Contains(field, " ") {
 		var fieldArr []string
 		if containsAs {
-			fieldArr = strings.Split(field, "as")
+			fieldArr = strings.Split(field, " as ")
 		} else {
 			fieldArr = strings.Split(field, " ")
 		}
