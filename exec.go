@@ -56,7 +56,7 @@ func (b *Builder) Insert(args ...interface{}) (string, []interface{}) {
 			}
 
 			value := make([]interface{}, 0)
-			fmt.Printf("field %#v\n", field)
+
 			for _, v := range field {
 				if val, ok := arg[v]; ok {
 					value = append(value, val)
