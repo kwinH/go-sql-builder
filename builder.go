@@ -51,3 +51,23 @@ func (b *Builder) GetTable() string {
 		return fmt.Sprintf("`%s`", b.TableName)
 	}
 }
+
+func (b *Builder) GetOrder() []string {
+	return b.methods.order
+}
+
+func (b *Builder) GetLimit() string {
+	return b.methods.limit
+}
+
+func (b *Builder) GetGroup() []string {
+	return b.methods.group
+}
+
+func (b *Builder) GetHaving() []string {
+	return b.methods.having
+}
+
+func (b *Builder) GetJoin() []string {
+	return b.methods.join
+}
