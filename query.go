@@ -6,6 +6,8 @@ import (
 )
 
 func (b *Builder) Select(args ...interface{}) *Builder {
+	b.methods.field = make([]interface{}, 0)
+
 	if len(args) == 1 {
 		fieldArr := make([]string, 0)
 		if field, ok := args[0].(string); ok {
