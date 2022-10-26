@@ -30,6 +30,10 @@ func (b *Builder) setTable(table interface{}) (uint8, string, []interface{}) {
 		table.(func(*Builder))(bw)
 		tmpTable, param = bw.ToSql()
 		tmpTable = fmt.Sprintf("(%s) as `tmp%d`", tmpTable, tmpTableClosureCount)
+	case func() *Builder:
+		tmpTableClosureCount = b.tmpTableClosureCount + 1
+		tmpTable, param = table.(func() *Builder)().ToSql()
+		tmpTable = fmt.Sprintf("(%s) as `tmp%d`", tmpTable, tmpTableClosureCount)
 	}
 
 	return tmpTableClosureCount, tmpTable, param
@@ -133,9 +137,9 @@ func (b *Builder) strEscapeId(field string, comma string) string {
 		field = field[:leftBracketIndex]
 
 		if param != "" && param != "*" {
-			param = fmt.Sprintf(`%s`, param)
+			param = fmt.Sprintf("`%s`", param)
 		}
-		field = fmt.Sprintf("%s( %s )", field, param)
+		field = fmt.Sprintf("%s(%s)", field, param)
 	} else {
 		field = fmt.Sprintf("`%s`", field)
 	}

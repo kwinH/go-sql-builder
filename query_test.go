@@ -42,8 +42,8 @@ func TestBuilder_Select_Aggregate(t *testing.T) {
 		params []interface{}
 	)
 
-	sql, params = NewBuilder("user").Select("max(`id`) as id_max").ToSql()
-	if sql == "SELECT max( id ) as `id_max` FROM `user`" &&
+	sql, params = NewBuilder("user").Select("max(id) as id_max").ToSql()
+	if sql == "SELECT max(`id`) as `id_max` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -51,7 +51,7 @@ func TestBuilder_Select_Aggregate(t *testing.T) {
 	}
 
 	sql, params = NewBuilder("user").Select("count(*) c").ToSql()
-	if sql == "SELECT count( * ) as `c` FROM `user`" &&
+	if sql == "SELECT count(*) as `c` FROM `user`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
