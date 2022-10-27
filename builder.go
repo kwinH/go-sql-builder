@@ -48,6 +48,10 @@ func (b *Builder) GetTable() string {
 			return b.tmpTable
 		}
 	} else {
+		if b.TableName == "" {
+			return ""
+		}
+
 		return fmt.Sprintf("`%s`", b.TableName)
 	}
 }

@@ -198,13 +198,13 @@ func (b *Builder) conditions(mode string, boolean string, args ...interface{}) *
 			args = b.convertInterfaceSlice(value)
 
 			b.params[mode] = append(b.params[mode], args[:2]...)
-			conditions = fmt.Sprintf(" %s `%s` %s ? AND ?", boolean, field, operator)
+			conditions = fmt.Sprintf(" %s %s %s ? AND ?", boolean, b.escapeId(field), operator)
 		} else {
 			switch valueKind {
 			case reflect.Array:
 			case reflect.Slice:
 				vi := b.convertInterfaceSlice(value)
-				conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, b.placeholders(len(vi)))
+				conditions = fmt.Sprintf(" %s %s %s (%s)", boolean, b.escapeId(field), operator, b.placeholders(len(vi)))
 				b.params[mode] = append(b.params[mode], vi...)
 			case reflect.Func:
 				if query, ok := value.(func(*Builder)); ok {
@@ -215,16 +215,16 @@ func (b *Builder) conditions(mode string, boolean string, args ...interface{}) *
 						operator = field
 						conditions = fmt.Sprintf(" %s %s (%s)", boolean, operator, bwSql)
 					} else {
-						conditions = fmt.Sprintf(" %s `%s` %s (%s)", boolean, field, operator, bwSql)
+						conditions = fmt.Sprintf(" %s %s %s (%s)", boolean, b.escapeId(field), operator, bwSql)
 					}
 
 					b.params[mode] = append(b.params[mode], bwParams...)
 				}
 			default:
 				if value == "NULL" || value == "NOT NULL" {
-					conditions = fmt.Sprintf(" %s `%s` IS %s", boolean, field, value)
+					conditions = fmt.Sprintf(" %s %s IS %s", boolean, b.escapeId(field), value)
 				} else {
-					conditions = fmt.Sprintf(" %s `%s` %s ?", boolean, field, operator)
+					conditions = fmt.Sprintf(" %s %s %s ?", boolean, b.escapeId(field), operator)
 					b.params[mode] = append(b.params[mode], value)
 				}
 			}
