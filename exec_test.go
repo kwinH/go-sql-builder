@@ -100,3 +100,47 @@ func TestBuilder_Update(t *testing.T) {
 		t.Error(sql, params)
 	}
 }
+
+func TestBuilder_Replace(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Replace(map[string]interface{}{
+		"name": "张三",
+		"age":  18,
+	})
+
+	if (sql == "REPLACE INTO `user` (`name`,`age`) VALUES(?,?)" &&
+		reflect.DeepEqual(params, []interface{}{"张三", 18})) ||
+		(sql == "REPLACE INTO `user` (`age`,`name`) VALUES(?,?)" &&
+			reflect.DeepEqual(params, []interface{}{18, "张三"})) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_DuplicateKey(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").DuplicateKey(map[string]interface{}{
+		"age": 18,
+	}).Insert(map[string]interface{}{
+		"name": "张三",
+		"age":  18,
+	})
+
+	if (sql == "INSERT INTO `user` (`name`,`age`) VALUES(?,?) ON DUPLICATE KEY UPDATE age=?" &&
+		reflect.DeepEqual(params, []interface{}{"张三", 18, 18})) ||
+		(sql == "INSERT INTO `user` (`age`,`name`) VALUES(?,?) ON DUPLICATE KEY UPDATE age=?" &&
+			reflect.DeepEqual(params, []interface{}{18, "张三", 18})) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}

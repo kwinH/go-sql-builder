@@ -26,7 +26,20 @@ func (b *Builder) Delete() (string, []interface{}) {
 	return sql, params
 }
 
+func (b *Builder) DuplicateKey(duplicateKey map[string]interface{}) *Builder {
+	b.methods.duplicateKey = duplicateKey
+	return b
+}
+
 func (b *Builder) Insert(args ...interface{}) (string, []interface{}) {
+	return b.insertReplace("INSERT", args...)
+}
+
+func (b *Builder) Replace(args ...interface{}) (string, []interface{}) {
+	return b.insertReplace("REPLACE", args...)
+}
+
+func (b *Builder) insertReplace(mode string, args ...interface{}) (string, []interface{}) {
 	params := make([]interface{}, 0)
 	sql := ""
 	defer b.cleanLastSql()
@@ -39,7 +52,7 @@ func (b *Builder) Insert(args ...interface{}) (string, []interface{}) {
 			bw := NewBuilder("")
 			query(bw)
 			sql, params := bw.ToSql()
-			sql = fmt.Sprintf("INSERT INTO %s (%s) %s", b.GetTable(), b.escapeId(field), sql)
+			sql = fmt.Sprintf("%s INTO %s (%s) %s", mode, b.GetTable(), b.escapeId(field), sql)
 
 			return sql, params
 		}
@@ -73,7 +86,7 @@ func (b *Builder) Insert(args ...interface{}) (string, []interface{}) {
 		}
 	}
 
-	sql = fmt.Sprintf("INSERT INTO %s (%s) VALUES", b.GetTable(), b.escapeId(field))
+	sql = fmt.Sprintf("%s INTO %s (%s) VALUES", mode, b.GetTable(), b.escapeId(field))
 
 	comma := ""
 	for k, value := range values {
@@ -82,6 +95,16 @@ func (b *Builder) Insert(args ...interface{}) (string, []interface{}) {
 		}
 		sql += fmt.Sprintf("%s(%s)", comma, strings.Trim(strings.Repeat("?,", len(value)), ","))
 		params = append(params, value...)
+	}
+
+	if b.methods.duplicateKey != nil {
+		duplicateKey := ""
+		for k, value := range b.methods.duplicateKey {
+			duplicateKey += fmt.Sprintf("%s=?,", k)
+			params = append(params, value)
+		}
+		duplicateKey = strings.Trim(duplicateKey, ",")
+		sql = fmt.Sprintf("%s ON DUPLICATE KEY UPDATE %s", sql, duplicateKey)
 	}
 
 	return sql, params

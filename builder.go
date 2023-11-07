@@ -7,13 +7,14 @@ import (
 type Raw string
 
 type methods struct {
-	field  []interface{}
-	where  []string
-	order  []string
-	limit  string
-	group  []string
-	having []string
-	join   []string
+	field        []interface{}
+	where        []string
+	order        []string
+	limit        string
+	group        []string
+	having       []string
+	join         []string
+	duplicateKey map[string]interface{}
 }
 
 type Builder struct {
