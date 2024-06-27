@@ -1,3 +1,3 @@
 module github.com/kwinH/go-sql-builder
 
-go 1.16
+go 1.21

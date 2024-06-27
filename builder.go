@@ -2,6 +2,7 @@ package sqlBuilder
 
 import (
 	"fmt"
+	"maps"
 )
 
 type Raw string
@@ -75,4 +76,17 @@ func (b *Builder) GetHaving() []string {
 
 func (b *Builder) GetJoin() []string {
 	return b.methods.join
+}
+
+func (b *Builder) Clone() *Builder {
+	obj := &Builder{
+		TableName:            b.TableName,
+		tmpTable:             b.tmpTable,
+		tmpTableClosureCount: b.tmpTableClosureCount,
+		params:               maps.Clone(b.params),
+		methods:              b.methods,
+	}
+
+	obj.methods.duplicateKey = maps.Clone(b.methods.duplicateKey)
+	return obj
 }
