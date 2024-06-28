@@ -5,9 +5,14 @@ import "fmt"
 func (b *Builder) Joins(table interface{}, condition string, joinType string, params ...interface{}) *Builder {
 	b.initialize()
 
-	isClosure, table, param := b.setTable(table)
+	isClosure, table, param, tableAlias := b.setTable(table)
+
 	if isClosure == 0 {
-		table = b.strEscapeId(table.(string), "")
+		table = fmt.Sprintf("`%s`", table)
+
+		if tableAlias != "" {
+			table = fmt.Sprintf("%s as `%s`", table, tableAlias)
+		}
 	}
 
 	b.params["join"] = append(b.params["join"], param...)

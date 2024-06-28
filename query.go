@@ -32,7 +32,8 @@ func (b *Builder) Select(args ...interface{}) *Builder {
 
 func (b *Builder) Table(table interface{}) *Builder {
 	b.initialize()
-	b.tmpTableClosureCount, b.tmpTable, b.params["table"] = b.setTable(table)
+	b.tmpTableClosureCount, b.tmpTable, b.params["table"], b.TableAlias = b.setTable(table)
+
 	return b
 }
 
@@ -112,14 +113,12 @@ func (b *Builder) Order(args ...interface{}) *Builder {
 	return b
 }
 
-//
 // Limit
 // @Description: 指定查询数量
 // @receiver b
 // @param int64 offset 起始位置
 // @param int64 length 查询数量
 // @return *Builder
-//
 func (b *Builder) Limit(args ...int64) *Builder {
 
 	switch len(args) {

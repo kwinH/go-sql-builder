@@ -104,7 +104,7 @@ func TestBuilder_Table_Alias(t *testing.T) {
 	}
 }
 
-func TestBuilder_Table_SubQuery(t *testing.T) {
+func TestBuilder_Table_SubQuery_Multi(t *testing.T) {
 	var (
 		sql    string
 		params []interface{}
@@ -113,9 +113,26 @@ func TestBuilder_Table_SubQuery(t *testing.T) {
 	sql, params = NewBuilder("user").Table(func(m *Builder) {
 		m.Table(func(m *Builder) {
 			m.Table("m_users").Select("sex", "count(*) as c").Group("sex")
-		})
+		}).Where("c", ">", 5)
 	}).ToSql()
-	if sql == "SELECT * FROM (SELECT * FROM (SELECT `sex`,count( * ) as `c` FROM `m_users` GROUP BY `sex`) as `tmp2`) as `tmp1`" &&
+	if sql == "SELECT * FROM (SELECT * FROM (SELECT `sex`,count(*) as `c` FROM `m_users` GROUP BY `sex`) as `tmp2` WHERE `c` > ?) as `tmp1`" &&
+		reflect.DeepEqual(params, []interface{}{5}) {
+		t.Log(sql, params)
+	} else {
+		t.Error(sql, params)
+	}
+}
+
+func TestBuilder_Table_SubQuery(t *testing.T) {
+	var (
+		sql    string
+		params []interface{}
+	)
+
+	sql, params = NewBuilder("user").Table(func(m *Builder) {
+		m.Table("m_users").Select("sex", "count(*) as c").Group("sex")
+	}).ToSql()
+	if sql == "SELECT * FROM (SELECT `sex`,count(*) as `c` FROM `m_users` GROUP BY `sex`) as `tmp1`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -169,7 +186,7 @@ func TestBuilder_Group(t *testing.T) {
 	)
 
 	sql, params = NewBuilder("user").Select("age", "count(*) as c").Group("age").ToSql()
-	if sql == "SELECT `age`,count( * ) as `c` FROM `user` GROUP BY `age`" &&
+	if sql == "SELECT `age`,count(*) as `c` FROM `user` GROUP BY `age`" &&
 		reflect.DeepEqual(params, []interface{}{}) {
 		t.Log(sql, params)
 	} else {
@@ -184,7 +201,7 @@ func TestBuilder_Having(t *testing.T) {
 	)
 
 	sql, params = NewBuilder("user").Select("age", "count(*) as c").Group("age").Having("c", ">", 10).ToSql()
-	if sql == "SELECT `age`,count( * ) as `c` FROM `user` GROUP BY `age` HAVING `c` > ?" &&
+	if sql == "SELECT `age`,count(*) as `c` FROM `user` GROUP BY `age` HAVING `c` > ?" &&
 		reflect.DeepEqual(params, []interface{}{10}) {
 		t.Log(sql, params)
 	} else {

@@ -12,16 +12,10 @@ func (b *Builder) initialize() {
 	}
 }
 
-func (b *Builder) setTable(table interface{}) (uint8, string, []interface{}) {
-	var (
-		tmpTable             string
-		param                []interface{}
-		tmpTableClosureCount uint8
-	)
-
+func (b *Builder) setTable(table interface{}) (tmpTableClosureCount uint8, tmpTable string, param []interface{}, tableAlias string) {
 	switch table.(type) {
 	case string:
-		tmpTable = table.(string)
+		tmpTable, tableAlias = b.getAlias(table.(string))
 	case func(*Builder):
 		bw := NewBuilder("")
 		bw.tmpTableClosureCount = b.tmpTableClosureCount
@@ -29,14 +23,16 @@ func (b *Builder) setTable(table interface{}) (uint8, string, []interface{}) {
 		tmpTableClosureCount = bw.tmpTableClosureCount
 		table.(func(*Builder))(bw)
 		tmpTable, param = bw.ToSql()
+		tableAlias = fmt.Sprintf("tmp%d", tmpTableClosureCount)
 		tmpTable = fmt.Sprintf("(%s) as `tmp%d`", tmpTable, tmpTableClosureCount)
 	case func() *Builder:
 		tmpTableClosureCount = b.tmpTableClosureCount + 1
 		tmpTable, param = table.(func() *Builder)().ToSql()
+		tableAlias = fmt.Sprintf("tmp%d", tmpTableClosureCount)
 		tmpTable = fmt.Sprintf("(%s) as `tmp%d`", tmpTable, tmpTableClosureCount)
 	}
 
-	return tmpTableClosureCount, tmpTable, param
+	return tmpTableClosureCount, tmpTable, param, tableAlias
 }
 
 func (b *Builder) placeholders(n int) string {
@@ -94,8 +90,8 @@ func (b *Builder) escapeId(field interface{}) (fieldStr string) {
 	return
 }
 
-func (b *Builder) strEscapeId(field string, comma string) string {
-	var alias, table string
+func (b *Builder) getAlias(field string) (string, string) {
+	var alias string
 
 	containsAs := strings.Contains(field, " as ")
 
@@ -113,10 +109,22 @@ func (b *Builder) strEscapeId(field string, comma string) string {
 			if fieldArr[i] == "" {
 				continue
 			}
-			alias = " as `" + strings.Trim(fieldArr[i], " ") + "`"
+			alias = strings.Trim(fieldArr[i], " ")
 			break
 		}
 
+	}
+
+	return field, alias
+}
+
+func (b *Builder) strEscapeId(field string, comma string) string {
+	var alias, table string
+
+	field, alias = b.getAlias(field)
+
+	if alias != "" {
+		alias = " as `" + alias + "`"
 	}
 
 	if strings.Contains(field, ".") {

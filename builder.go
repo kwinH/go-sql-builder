@@ -21,6 +21,7 @@ type methods struct {
 type Builder struct {
 	TableName            string
 	tmpTable             string
+	TableAlias           string
 	tmpTableClosureCount uint8
 	params               map[string][]interface{}
 
@@ -42,13 +43,21 @@ func (b *Builder) GetWhere() []string {
 	return b.methods.where
 }
 
+func (b *Builder) TmpTable() string {
+	return b.tmpTable
+}
+
 func (b *Builder) GetTable() string {
 	if b.tmpTable != "" {
+		table := b.tmpTable
 		if b.tmpTableClosureCount == 0 {
-			return b.strEscapeId(b.tmpTable, "")
-		} else {
-			return b.tmpTable
+			table = fmt.Sprintf("`%s`", table)
+
+			if b.TableAlias != "" {
+				table = fmt.Sprintf("%s as `%s`", table, b.TableAlias)
+			}
 		}
+		return table
 	} else {
 		if b.TableName == "" {
 			return ""
